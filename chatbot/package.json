@@ -1,0 +1,27 @@
+{
+  "name": "paragraph-evaluator",
+  "version": "2.0.0",
+  "description": "AI-powered paragraph evaluator using LLaMA 3.1, deployable to Cloudflare Workers",
+  "main": "worker.js",
+  "scripts": {
+    "dev": "wrangler dev --config wrangler.toml",
+    "dev:ai": "wrangler dev --config wrangler-cf-ai.toml",
+    "deploy": "wrangler deploy --config wrangler.toml",
+    "deploy:ai": "wrangler deploy --config wrangler-cf-ai.toml",
+    "tail": "wrangler tail",
+    "delete": "wrangler delete paragraph-evaluator"
+  },
+  "keywords": [
+    "ai",
+    "llama",
+    "cloudflare",
+    "workers",
+    "ollama",
+    "text-evaluation"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "wrangler": "^3.0.0"
+  }
+}

@@ -1,0 +1,21 @@
+name = "paragraph-evaluator"
+main = "worker-cf-ai.js"
+compatibility_date = "2024-01-01"
+
+# Workers AI binding (uses Cloudflare's AI models)
+[ai]
+binding = "AI"
+
+# Environment variables
+[vars]
+# Cloudflare Workers AI model to use
+AI_MODEL = "@cf/meta/llama-3.1-8b-instruct"
+# Temperature (controls randomness: 0.0 = deterministic, 1.0 = creative)
+TEMPERATURE = 0.3
+# Max tokens for AI response
+MAX_TOKENS = 256
+
+# Route configuration (adjust to your domain)
+# routes = [
+#   { pattern = "paragraph-evaluator.yourdomain.com/*", zone_name = "yourdomain.com" }
+# ]

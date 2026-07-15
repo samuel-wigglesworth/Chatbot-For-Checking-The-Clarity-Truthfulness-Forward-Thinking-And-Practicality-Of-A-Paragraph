@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paragraph Evaluator Chatbot</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .chat-container {
+            height: 500px;
+            overflow-y: auto;
+            padding: 30px;
+            background: #f8f9fa;
+        }
+
+        .message {
+            margin-bottom: 20px;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.user {
+            text-align: right;
+        }
+
+        .message-content {
+            display: inline-block;
+            max-width: 80%;
+            padding: 15px 20px;
+            border-radius: 18px;
+            word-wrap: break-word;
+        }
+
+        .message.user .message-content {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-bottom-right-radius: 5px;
+        }
+
+        .message.bot .message-content {
+            background: white;
+            color: #333;
+            border: 1px solid #e0e0e0;
+            border-bottom-left-radius: 5px;
+        }
+
+        .scores {
+            margin-top: 15px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .score-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .score-label {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .score-value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #667eea;
+            display: flex;
+            align-items: center;
+        }
+
+        .score-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+
+        .score-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            border-radius: 4px;
+            transition: width 0.6s ease-out;
+        }
+
+        .input-area {
+            padding: 25px;
+            background: white;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .model-info {
+            margin-bottom: 15px;
+        }
+
+        .model-badge {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 15px;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            border: 2px solid rgba(102, 126, 234, 0.3);
+            border-radius: 10px;
+        }
+
+        .badge-icon {
+            font-size: 28px;
+        }
+
+        .badge-content strong {
+            display: block;
+            font-size: 15px;
+            color: #333;
+            margin-bottom: 4px;
+        }
+
+        .badge-content p {
+            font-size: 13px;
+            color: #666;
+            margin: 0;
+            line-height: 1.4;
+        }
+
+        .input-wrapper {
+            display: flex;
+            gap: 10px;
+        }
+
+        textarea {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 15px;
+            font-family: inherit;
+            resize: none;
+            transition: border-color 0.3s;
+            min-height: 80px;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: #fee;
+            color: #c33;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 10px;
+            border-left: 4px solid #c33;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                border-radius: 0;
+            }
+
+            .chat-container {
+                height: 400px;
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 22px;
+            }
+
+            .input-wrapper {
+                flex-direction: column;
+            }
+
+            button {
+                width: 100%;
+            }
+
+            .scores {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📝 Paragraph Evaluator</h1>
+            <p>AI-powered analysis across 4 key dimensions</p>
+        </div>
+
+        <div class="chat-container" id="chatContainer">
+            <div class="message bot">
+                <div class="message-content">
+                    👋 Welcome! I'm your paragraph evaluator. Type any paragraph and I'll analyze it across four dimensions: <strong>Clarity</strong>, <strong>Truthfulness</strong>, <strong>Forward Thinking</strong>, and <strong>Practicality</strong>. Each will be scored out of 100.
+                </div>
+            </div>
+        </div>
+
+        <div class="input-area">
+            <div class="model-info">
+                <div class="model-badge">
+                    <span class="badge-icon">🤖</span>
+                    <div class="badge-content">
+                        <strong>LLaMA 3.1 Evaluation</strong>
+                        <p>Powered by llama3.1:latest for comprehensive multi-dimensional analysis</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="input-wrapper">
+                <textarea id="userInput" placeholder="Type your paragraph here..."></textarea>
+                <button id="sendBtn" onclick="sendMessage()">Evaluate</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const chatContainer = document.getElementById('chatContainer');
+        const userInput = document.getElementById('userInput');
+        const sendBtn = document.getElementById('sendBtn');
+
+        // Listen for Enter key (without Shift for newline)
+        userInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        async function sendMessage() {
+            const text = userInput.value.trim();
+            if (!text) return;
+
+            // Disable input while processing
+            sendBtn.disabled = true;
+            userInput.disabled = true;
+
+            // Add user message
+            addMessage(text, 'user');
+            userInput.value = '';
+
+            // Show loading
+            const loadingId = showLoading();
+
+            try {
+                const prompt = `Evaluate the following text across four dimensions and provide ONLY a JSON response with scores from 0 to 100 for each dimension. No explanations, no additional text, just valid JSON.
+
+Text to evaluate: "${text}"
+
+Dimensions:
+1. Clarity - How clear, concise, and well-organized is the text?
+2. Truthfulness - How factually accurate and logically consistent is the content?
+3. Innovation - How novel, creative, and forward-thinking are the ideas?
+4. Practicality - How actionable, realistic, and useful is the content?
+
+Respond with ONLY this JSON format:
+{
+  "clarity": <score 0-100>,
+  "truthfulness": <score 0-100>,
+  "innovation": <score 0-100>,
+  "practicality": <score 0-100>
+}`;
+
+                const response = await fetch('/api/evaluate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        text: text,
+                        prompt: prompt
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API error: ${response.statusText}`);
+                }
+
+                const scores = await response.json();
+
+                // Validate and clamp scores
+                const validatedScores = {
+                    clarity: clampScore(scores.clarity),
+                    truthfulness: clampScore(scores.truthfulness),
+                    innovation: clampScore(scores.innovation),
+                    practicality: clampScore(scores.practicality)
+                };
+
+                // Remove loading
+                removeLoading(loadingId);
+
+                // Add bot response with scores
+                addScoreMessage(validatedScores);
+
+            } catch (error) {
+                removeLoading(loadingId);
+                addErrorMessage(error.message);
+            }
+
+            // Re-enable input
+            sendBtn.disabled = false;
+            userInput.disabled = false;
+            userInput.focus();
+        }
+
+        function addMessage(text, sender) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            contentDiv.textContent = text;
+
+            messageDiv.appendChild(contentDiv);
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function addScoreMessage(scores) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message bot';
+
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            contentDiv.innerHTML = `
+                <strong>✨ Evaluation Complete (LLaMA 3.1)</strong>
+                <div class="scores">
+                    ${createScoreCard('Clarity', scores.clarity)}
+                    ${createScoreCard('Truthfulness', scores.truthfulness)}
+                    ${createScoreCard('Innovation', scores.innovation)}
+                    ${createScoreCard('Practicality', scores.practicality)}
+                </div>
+            `;
+
+            messageDiv.appendChild(contentDiv);
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function createScoreCard(label, value) {
+            return `
+                <div class="score-item">
+                    <div class="score-label">${label}</div>
+                    <div class="score-value">${value}<span style="font-size: 18px; color: #999; margin-left: 5px;">/100</span></div>
+                    <div class="score-bar">
+                        <div class="score-fill" style="width: ${value}%"></div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function showLoading() {
+            const loadingId = `loading-${Date.now()}`;
+            const loadingDiv = document.createElement('div');
+            loadingDiv.id = loadingId;
+            loadingDiv.className = 'message bot';
+            loadingDiv.innerHTML = `
+                <div class="message-content">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        Analyzing your paragraph with LLaMA 3.1...
+                    </div>
+                </div>
+            `;
+            chatContainer.appendChild(loadingDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            return loadingId;
+        }
+
+        function removeLoading(loadingId) {
+            const loadingDiv = document.getElementById(loadingId);
+            if (loadingDiv) loadingDiv.remove();
+        }
+
+        function addErrorMessage(error) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message bot';
+            messageDiv.innerHTML = `
+                <div class="message-content">
+                    <div class="error">
+                        <strong>⚠️ Error:</strong> ${error}
+                    </div>
+                </div>
+            `;
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function clampScore(score) {
+            const num = parseInt(score) || 0;
+            return Math.max(0, Math.min(100, num));
+        }
+    </script>
+</body>
+</html>
